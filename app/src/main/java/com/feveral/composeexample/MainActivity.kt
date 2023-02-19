@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,11 +48,26 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
+    fun ProgressView() {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(16.dp)
+            )
+        }
+    }
+
+    @Composable
     fun MemeListView(vm: TrendingMemeViewModel) {
 
         LaunchedEffect(Unit, block = {
             vm.getMemes()
         })
+
+        if (vm.isLoading) ProgressView()
 
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             items(vm.memeList) { meme ->
@@ -103,15 +116,20 @@ class MainActivity : ComponentActivity() {
 class TrendingMemeViewModel: ViewModel() {
 
     private val _memeList = mutableStateListOf<Meme>()
+    private val _isLoading = mutableStateOf(true)
     val memeList: List<Meme>
         get() = _memeList
+    val isLoading: Boolean
+        get() = _isLoading.value
 
     fun getMemes() {
         viewModelScope.launch {
             val memeService = MemeService.getInstance()
             try {
+                val memes = memeService.getTrendingMemes(100, 0)
+                _isLoading.value = false
                 _memeList.clear()
-                _memeList.addAll(memeService.getTrendingMemes())
+                _memeList.addAll(memes)
             } catch (e: Exception) {
                 Log.d("MemeViewModel", "fetch trending meme failed")
                 Log.e("MemeViewModel", e.toString())

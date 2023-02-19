@@ -4,10 +4,11 @@ import com.feveral.composeexample.models.Meme
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface MemeService {
     @GET("memes/trending")
-    suspend fun getTrendingMemes(): List<Meme>
+    suspend fun getTrendingMemes(@Query("limit") limit: Int, @Query("skip") skip: Int): List<Meme>
 
     companion object {
         var memeService: MemeService? = null
